@@ -1,0 +1,1998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe & Meal Planner</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Lucide icons as simple SVG components
+        const Plus = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        );
+
+        const ChefHat = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"></path>
+                <line x1="6" y1="17" x2="18" y2="17"></line>
+            </svg>
+        );
+
+        const Calendar = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+        );
+
+        const ShoppingCart = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="9" cy="21" r="1"></circle>
+                <circle cx="20" cy="21" r="1"></circle>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+        );
+
+        const X = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        );
+
+        const Edit2 = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+            </svg>
+        );
+
+        const Trash2 = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+        );
+
+        const Download = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+        );
+
+        const Upload = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+        );
+
+        const Heart = ({ size = 24, className = "", filled = false }) => (
+            <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+        );
+
+        const Star = ({ size = 24, className = "", filled = false }) => (
+            <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+                <polygon points="12 2 15.09 10.26 24 10.27 17.18 16.70 20.29 24.96 12 18.53 3.71 24.96 6.82 16.70 0 10.27 8.91 10.26 12 2"></polygon>
+            </svg>
+        );
+
+        const Copy = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+            </svg>
+        );
+
+        const Settings = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"></path>
+            </svg>
+        );
+
+        const Check = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        );
+
+        const AlertCircle = ({ size = 24, className = "" }) => (
+            <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+        );
+
+        // Simple localStorage wrapper
+        const storage = {
+            get: (key) => {
+                try {
+                    const item = localStorage.getItem(key);
+                    return item ? JSON.parse(item) : null;
+                } catch (error) {
+                    console.log(`No data found for ${key}`);
+                    return null;
+                }
+            },
+            set: (key, value) => {
+                try {
+                    localStorage.setItem(key, JSON.stringify(value));
+                } catch (error) {
+                    console.error('Storage error:', error);
+                }
+            }
+        };
+
+        // Parse recipe from text
+        function parseRecipeText(text) {
+            const lines = text.split('\n').map(line => line.trim()).filter(line => line);
+
+            let name = '';
+            let ingredients = [];
+            let instructions = '';
+            let servings = 4;
+
+            let currentSection = 'name';
+            let instructionLines = [];
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const lowerLine = line.toLowerCase();
+
+                if (lowerLine.includes('ingredient')) {
+                    currentSection = 'ingredients';
+                    continue;
+                }
+                if (lowerLine.includes('instruction') || lowerLine.includes('direction') || lowerLine.includes('step')) {
+                    currentSection = 'instructions';
+                    continue;
+                }
+                if (lowerLine.includes('serving')) {
+                    const match = line.match(/(\d+)/);
+                    if (match) servings = parseInt(match[1]);
+                    continue;
+                }
+
+                if (currentSection === 'name' && !name) {
+                    name = line;
+                } else if (currentSection === 'ingredients') {
+                    const ingredientMatch = line.match(/^([\d\/\.\s]+)?\s*([a-zA-Z]+)?\s*(.+)$/);
+                    if (ingredientMatch) {
+                        const amount = (ingredientMatch[1] || '').trim();
+                        const unit = (ingredientMatch[2] || '').trim();
+                        const item = (ingredientMatch[3] || line).trim();
+                        if (item) {
+                            ingredients.push({ amount, unit, item });
+                        }
+                    }
+                } else if (currentSection === 'instructions') {
+                    instructionLines.push(line);
+                }
+            }
+
+            instructions = instructionLines.join('\n');
+
+            return {
+                name: name || 'Imported Recipe',
+                ingredients: ingredients.length > 0 ? ingredients : [{ item: '', amount: '', unit: '' }],
+                instructions,
+                servings
+            };
+        }
+
+        // Enhanced fetchRecipeFromURL with better parsing
+        async function fetchRecipeFromURL(url) {
+            try {
+                const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+                const response = await fetch(proxyUrl);
+                const html = await response.text();
+
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                // Find all JSON-LD scripts
+                const scripts = Array.from(doc.querySelectorAll('script[type="application/ld+json"]'));
+                let recipe = null;
+
+                // Recursively search for a Recipe object in any JSON structure
+                const findRecipe = (obj) => {
+                    if (!obj || typeof obj !== 'object') return null;
+                    // Check if this object is a Recipe
+                    const type = obj['@type'];
+                    if (type === 'Recipe' || (Array.isArray(type) && type.includes('Recipe'))) return obj;
+                    // Search in @graph
+                    if (Array.isArray(obj['@graph'])) {
+                        for (const item of obj['@graph']) {
+                            const found = findRecipe(item);
+                            if (found) return found;
+                        }
+                    }
+                    // Search in arrays
+                    if (Array.isArray(obj)) {
+                        for (const item of obj) {
+                            const found = findRecipe(item);
+                            if (found) return found;
+                        }
+                    }
+                    // Search in nested objects (e.g., mainEntity, itemReviewed)
+                    for (const key of Object.keys(obj)) {
+                        if (key.startsWith('@')) continue;
+                        if (typeof obj[key] === 'object' && obj[key] !== null) {
+                            const found = findRecipe(obj[key]);
+                            if (found) return found;
+                        }
+                    }
+                    return null;
+                };
+
+                for (const script of scripts) {
+                    try {
+                        const data = JSON.parse(script.textContent);
+                        recipe = findRecipe(data);
+                        if (recipe) break;
+                    } catch (e) {
+                        continue;
+                    }
+                }
+
+                if (recipe) {
+                    // Parse ingredients with better unit/amount splitting
+                    const validUnits = ['cup','cups','tablespoon','tablespoons','tbsp','teaspoon','teaspoons','tsp','ounce','ounces','oz','pound','pounds','lb','lbs','gram','grams','g','kilogram','kilograms','kg','ml','milliliter','milliliters','liter','liters','l','quart','quarts','qt','pint','pints','pt','gallon','gallons','gal','stick','sticks','can','cans','jar','jars','bottle','bottles','package','packages','pkg','bag','bags','box','boxes','bunch','bunches','head','heads','clove','cloves','slice','slices','piece','pieces','sprig','sprigs','stalk','stalks','pinch','dash','handful','drop','drops'];
+                    const parseIngredient = (ingredientStr) => {
+                        const match = ingredientStr.match(/^([\d\s\/%\.½⅓⅔¼¾⅛⅜⅝⅞]+)\s+(.+)$/);
+                        if (!match) return { amount: '', unit: '', item: ingredientStr };
+                        const amt = (match[1] || '').trim();
+                        const rest = (match[2] || '').trim();
+                        const parts = rest.match(/^(\S+)\s+(.+)$/);
+                        if (parts) {
+                            const maybeUnit = parts[1].toLowerCase().replace(/[.,]/g, '');
+                            if (validUnits.includes(maybeUnit)) {
+                                return { amount: amt, unit: parts[1], item: parts[2] };
+                            }
+                        }
+                        return { amount: '', unit: '', item: ingredientStr };
+                    };
+
+                    const ingredients = Array.isArray(recipe.recipeIngredient)
+                        ? recipe.recipeIngredient.map(ing => parseIngredient(ing))
+                        : [{ item: '', amount: '', unit: '' }];
+
+                    return {
+                        name: recipe.name || 'Imported Recipe',
+                        ingredients: ingredients.filter(ing => ing.item.trim()),
+                        instructions: Array.isArray(recipe.recipeInstructions)
+                            ? recipe.recipeInstructions.map(step => typeof step === 'string' ? step : step.text || step).join('\n\n')
+                            : (recipe.recipeInstructions || ''),
+                        servings: recipe.recipeYield ? parseInt(recipe.recipeYield) : 4,
+                        prepTime: parseDuration(recipe.prepTime) || '',
+                        cookTime: parseDuration(recipe.cookTime) || '',
+                        calories: recipe.nutrition?.calories ? parseInt(recipe.nutrition.calories) : '',
+                        protein: recipe.nutrition?.proteinContent ? parseInt(recipe.nutrition.proteinContent) : '',
+                        carbs: recipe.nutrition?.carbohydrateContent ? parseInt(recipe.nutrition.carbohydrateContent) : '',
+                        fat: recipe.nutrition?.fatContent ? parseInt(recipe.nutrition.fatContent) : ''
+                    };
+                }
+
+                // Fallback to basic HTML parsing
+                const title = doc.querySelector('h1')?.textContent || 'Imported Recipe';
+                const ingredientsList = Array.from(doc.querySelectorAll('li')).slice(0, 20).map(li => ({
+                    item: li.textContent.trim(),
+                    amount: '',
+                    unit: ''
+                }));
+
+                return {
+                    name: title,
+                    ingredients: ingredientsList.length > 0 ? ingredientsList : [{ item: '', amount: '', unit: '' }],
+                    instructions: 'Please add instructions manually',
+                    servings: 4
+                };
+
+            } catch (error) {
+                console.error('Error fetching recipe:', error);
+                throw new Error('Could not fetch recipe from this URL. Please try copying and pasting the recipe text instead.');
+            }
+        }
+
+        // Parse ISO 8601 duration (PT1H30M, PT15M, etc.) to readable string
+        function parseDuration(iso) {
+            if (!iso) return '';
+            const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+            if (!match) return '';
+            const hours = parseInt(match[1]) || 0;
+            const mins = parseInt(match[2]) || 0;
+            if (hours && mins) return `${hours} hr ${mins} min`;
+            if (hours) return `${hours} hr`;
+            if (mins) return `${mins} min`;
+            return '';
+        }
+
+        // Bookmarklet code generator
+        function generateBookmarkletCode() {
+            return `javascript:(function(){var scripts=Array.from(document.querySelectorAll('script[type="application/ld+json"]'));var recipe=null;var findR=function(o){if(!o||typeof o!=='object')return null;var t=o['@type'];if(t==='Recipe'||(Array.isArray(t)&&t.indexOf('Recipe')!==-1))return o;if(Array.isArray(o['@graph'])){for(var i=0;i<o['@graph'].length;i++){var f=findR(o['@graph'][i]);if(f)return f;}}if(Array.isArray(o)){for(var j=0;j<o.length;j++){var f2=findR(o[j]);if(f2)return f2;}}var keys=Object.keys(o);for(var k=0;k<keys.length;k++){if(keys[k].charAt(0)==='@')continue;if(typeof o[keys[k]]==='object'&&o[keys[k]]!==null){var f3=findR(o[keys[k]]);if(f3)return f3;}}return null;};for(var i=0;i<scripts.length;i++){try{var data=JSON.parse(scripts[i].textContent);recipe=findR(data);if(recipe)break;}catch(e){continue;}}var output;if(recipe){var units=['cup','cups','tablespoon','tablespoons','tbsp','teaspoon','teaspoons','tsp','ounce','ounces','oz','pound','pounds','lb','lbs','gram','grams','g','kilogram','kilograms','kg','ml','milliliter','milliliters','liter','liters','l','quart','quarts','qt','pint','pints','pt','gallon','gallons','gal','stick','sticks','can','cans','jar','jars','bottle','bottles','package','packages','pkg','bag','bags','box','boxes','bunch','bunches','head','heads','clove','cloves','slice','slices','piece','pieces','sprig','sprigs','stalk','stalks','pinch','dash','handful','drop','drops'];var parseIng=function(s){var m=s.match(/^([\\d\\s\\/%\\.\\u00BD\\u2153\\u2154\\u00BC\\u00BE\\u215B\\u215C\\u215D\\u215E]+)\\s*(.+)$/);if(!m)return{amount:'',unit:'',item:s};var amt=(m[1]||'').trim();var rest=(m[2]||'').trim();var parts=rest.match(/^(\\S+)\\s+(.+)$/);if(parts){var maybeUnit=parts[1].toLowerCase().replace(/[.,]/g,'');if(units.indexOf(maybeUnit)!==-1){return{amount:amt,unit:parts[1],item:parts[2]};}}return{amount:'',unit:'',item:s};};var pDur=function(iso){if(!iso)return'';var m=iso.match(/PT(?:(\\d+)H)?(?:(\\d+)M)?/);if(!m)return'';var h=parseInt(m[1])||0;var mn=parseInt(m[2])||0;if(h&&mn)return h+' hr '+mn+' min';if(h)return h+' hr';if(mn)return mn+' min';return'';};output={name:recipe.name||'Imported Recipe',ingredients:(recipe.recipeIngredient||[]).map(parseIng).filter(function(i){return i.item;}),instructions:Array.isArray(recipe.recipeInstructions)?recipe.recipeInstructions.map(function(s){return typeof s==='string'?s:s.text||s;}).join('\\n\\n'):(recipe.recipeInstructions||''),servings:recipe.recipeYield?parseInt(recipe.recipeYield):4,prepTime:pDur(recipe.prepTime)||'',cookTime:pDur(recipe.cookTime)||'',calories:recipe.nutrition&&recipe.nutrition.calories?parseInt(recipe.nutrition.calories):'',protein:recipe.nutrition&&recipe.nutrition.proteinContent?parseInt(recipe.nutrition.proteinContent):'',carbs:recipe.nutrition&&recipe.nutrition.carbohydrateContent?parseInt(recipe.nutrition.carbohydrateContent):'',fat:recipe.nutrition&&recipe.nutrition.fatContent?parseInt(recipe.nutrition.fatContent):'',sourceUrl:window.location.href};}else{var lis=Array.from(document.querySelectorAll('li')).slice(0,20);output={name:(document.querySelector('h1')||{}).textContent||'Imported Recipe',ingredients:lis.map(function(li){return{amount:'',unit:'',item:li.textContent.trim()};}),instructions:'Please add instructions manually',servings:4,sourceUrl:window.location.href};}window.open('http://localhost:3000#import='+encodeURIComponent(JSON.stringify(output)),'_blank');})();`;
+        }
+
+        const CATEGORIES = ['Dinner', 'Breakfast', 'Dessert', 'Side'];
+
+        function autoCategorizeName(name) {
+            const lower = name.toLowerCase();
+            // Breakfast keywords
+            if (/breakfast|brunch|pancake|waffle|omelette|omelet|french toast|scramble|cereal|granola|muffin|egg\b.*morning|morning|casserole.*breakfast|breakfast.*casserole/.test(lower)) return 'Breakfast';
+            // Dessert keywords
+            if (/dessert|cake|cookie|brownie|pie|tart|ice cream|pudding|custard|cobbler|crumble|mousse|cheesecake|truffle|fudge|sweet\b.*treat|candy|pastry|doughnut|donut/.test(lower)) return 'Dessert';
+            // Side keywords
+            if (/salad(?!.*chicken|.*steak|.*shrimp|.*salmon|.*tuna)|side|roasted.*potato|mashed.*potato|lemon.*potato|greek.*potato|coleslaw|slaw|cornbread|biscuit|roll\b|steamed|sautéed.*vegetable|grilled.*vegetable/.test(lower)) return 'Side';
+            // Default to Dinner
+            return 'Dinner';
+        }
+
+        function RecipeMealPlanner() {
+            const [activeTab, setActiveTab] = useState('recipes');
+            const [recipes, setRecipes] = useState([]);
+            const [mealPlan, setMealPlan] = useState([]);
+            const [showAddRecipe, setShowAddRecipe] = useState(false);
+            const [editingRecipe, setEditingRecipe] = useState(null);
+            const [importUrl, setImportUrl] = useState('');
+            const [isImporting, setIsImporting] = useState(false);
+            const [showBatchImport, setShowBatchImport] = useState(false);
+            const [batchUrls, setBatchUrls] = useState('');
+            const [batchProgress, setBatchProgress] = useState(null);
+            const [filterFavoritesOnly, setFilterFavoritesOnly] = useState(false);
+            const [sortByRating, setSortByRating] = useState(false);
+            const [searchQuery, setSearchQuery] = useState('');
+            const [importMessage, setImportMessage] = useState('');
+            const [filterCategory, setFilterCategory] = useState('All');
+            const [editingMealId, setEditingMealId] = useState(null);
+            const [mealSearchQuery, setMealSearchQuery] = useState('');
+            const [checkedItems, setCheckedItems] = useState({});
+            const [showDataLossWarning, setShowDataLossWarning] = useState(false);
+            const [draggedMealId, setDraggedMealId] = useState(null);
+
+            const [newRecipe, setNewRecipe] = useState({
+                name: '',
+                ingredients: [{ item: '', amount: '', unit: '' }],
+                instructions: '',
+                servings: 4,
+                prepTime: '',
+                cookTime: '',
+                calories: '',
+                protein: '',
+                carbs: '',
+                fat: '',
+                isFavorite: false,
+                rating: 0,
+                sourceUrl: '',
+                category: 'Dinner'
+            });
+
+            useEffect(() => {
+                loadData();
+                // Check for recipe data in URL hash (from bookmarklet)
+                if (window.location.hash.startsWith('#import=')) {
+                    try {
+                        const encoded = window.location.hash.substring('#import='.length);
+                        const recipeData = JSON.parse(decodeURIComponent(encoded));
+                        if (recipeData.name && recipeData.ingredients) {
+                            setNewRecipe({
+                                ...recipeData,
+                                isFavorite: false,
+                                rating: 0,
+                                category: autoCategorizeName(recipeData.name)
+                            });
+                            setShowAddRecipe(true);
+                            setActiveTab('recipes');
+                            setImportMessage('Recipe imported from bookmarklet! Review and save.');
+                            setTimeout(() => setImportMessage(''), 5000);
+                            // Clean up the URL hash
+                            window.history.replaceState(null, '', window.location.pathname);
+                        }
+                    } catch (e) {
+                        console.error('Failed to parse recipe from URL:', e);
+                    }
+                }
+            }, []);
+
+            const loadData = () => {
+                const savedRecipes = storage.get('recipes');
+                const savedMealPlan = storage.get('mealPlan');
+                if (savedRecipes && savedRecipes.length > 0) {
+                    // Auto-categorize any recipes that don't have a category yet
+                    let needsSave = false;
+                    const categorized = savedRecipes.map(r => {
+                        if (!r.category) {
+                            needsSave = true;
+                            return { ...r, category: autoCategorizeName(r.name) };
+                        }
+                        return r;
+                    });
+                    setRecipes(categorized);
+                    if (needsSave) storage.set('recipes', categorized);
+                } else {
+                    // No recipes found — check if backup exists
+                    const backupRecipes = storage.get('recipes_backup');
+                    if (backupRecipes && backupRecipes.length > 0) {
+                        // Data was lost! Restore from backup automatically
+                        setRecipes(backupRecipes);
+                        storage.set('recipes', backupRecipes);
+                        setShowDataLossWarning(true);
+                    }
+                }
+                if (savedMealPlan && savedMealPlan.length > 0) {
+                    setMealPlan(savedMealPlan);
+                } else {
+                    const backupMealPlan = storage.get('mealPlan_backup');
+                    if (backupMealPlan && backupMealPlan.length > 0) {
+                        setMealPlan(backupMealPlan);
+                        storage.set('mealPlan', backupMealPlan);
+                    }
+                }
+            };
+
+            const saveRecipes = (updatedRecipes) => {
+                setRecipes(updatedRecipes);
+                storage.set('recipes', updatedRecipes);
+                // Auto-backup: also save a timestamped backup key
+                if (updatedRecipes.length > 0) {
+                    storage.set('recipes_backup', updatedRecipes);
+                    storage.set('recipes_backup_date', new Date().toISOString());
+                }
+                // Check if it's been 7+ days since last file backup
+                const lastFileBackup = storage.get('last_file_backup_date');
+                if (updatedRecipes.length > 0) {
+                    if (!lastFileBackup || (new Date() - new Date(lastFileBackup)) > 7 * 24 * 60 * 60 * 1000) {
+                        autoDownloadBackup(updatedRecipes);
+                    }
+                }
+            };
+
+            const autoDownloadBackup = (recipesToBackup) => {
+                try {
+                    const data = JSON.stringify(recipesToBackup, null, 2);
+                    const blob = new Blob([data], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    const date = new Date().toISOString().split('T')[0];
+                    a.download = `recipes-auto-backup-${date}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    storage.set('last_file_backup_date', new Date().toISOString());
+                } catch (e) {
+                    console.error('Auto-backup failed:', e);
+                }
+            };
+
+            const saveMealPlan = (updatedPlan) => {
+                setMealPlan(updatedPlan);
+                storage.set('mealPlan', updatedPlan);
+                if (updatedPlan.length > 0) {
+                    storage.set('mealPlan_backup', updatedPlan);
+                }
+            };
+
+            const addIngredient = () => {
+                setNewRecipe({
+                    ...newRecipe,
+                    ingredients: [...newRecipe.ingredients, { item: '', amount: '', unit: '' }]
+                });
+            };
+
+            const updateIngredient = (index, field, value) => {
+                const updated = [...newRecipe.ingredients];
+                updated[index][field] = value;
+                setNewRecipe({ ...newRecipe, ingredients: updated });
+            };
+
+            const removeIngredient = (index) => {
+                const updated = newRecipe.ingredients.filter((_, i) => i !== index);
+                setNewRecipe({ ...newRecipe, ingredients: updated });
+            };
+
+            const handleImportFromURL = async () => {
+                if (!importUrl.trim()) {
+                    return;
+                }
+
+                setIsImporting(true);
+                try {
+                    const parsedRecipe = await fetchRecipeFromURL(importUrl);
+                    setNewRecipe({
+                        ...newRecipe,
+                        ...parsedRecipe,
+                        isFavorite: false,
+                        rating: 0,
+                        sourceUrl: importUrl.trim()
+                    });
+                    setImportUrl('');
+                    setImportMessage('Recipe imported! Review and edit as needed, then save.');
+                    setTimeout(() => setImportMessage(''), 3000);
+                } catch (error) {
+                    alert(error.message);
+                } finally {
+                    setIsImporting(false);
+                }
+            };
+
+            const [showPasteBox, setShowPasteBox] = useState(false);
+
+            const handlePasteImport = (text) => {
+                if (!text.trim()) return;
+
+                // Try to parse as JSON first
+                try {
+                    const jsonData = JSON.parse(text);
+                    if (jsonData.name && jsonData.ingredients) {
+                        setNewRecipe({
+                            ...newRecipe,
+                            ...jsonData,
+                            isFavorite: jsonData.isFavorite || false,
+                            rating: jsonData.rating || 0
+                        });
+                        setImportMessage('Recipe imported successfully!');
+                        setShowPasteBox(false);
+                        setTimeout(() => setImportMessage(''), 3000);
+                        return;
+                    }
+                } catch (e) {
+                    // Not JSON, continue
+                }
+
+                // Try to parse as URL
+                if (text.trim().startsWith('http')) {
+                    setImportUrl(text.trim());
+                    setImportMessage('URL detected. Click Import to fetch recipe.');
+                    setShowPasteBox(false);
+                    setTimeout(() => setImportMessage(''), 3000);
+                    return;
+                }
+
+                // Parse as plain text
+                const parsed = parseRecipeText(text);
+                setNewRecipe({
+                    ...newRecipe,
+                    ...parsed,
+                    isFavorite: false,
+                    rating: 0
+                });
+                setImportMessage('Recipe parsed from pasted text!');
+                setShowPasteBox(false);
+                setTimeout(() => setImportMessage(''), 3000);
+            };
+
+            const handleBatchImport = async () => {
+                const urls = batchUrls.split('\n').map(u => u.trim()).filter(u => u);
+                if (urls.length === 0) {
+                    alert('Please paste at least one URL');
+                    return;
+                }
+
+                let succeeded = 0;
+                let failed = 0;
+                let skipped = 0;
+                const newRecipes = [...recipes];
+
+                for (let i = 0; i < urls.length; i++) {
+                    setBatchProgress({ current: i + 1, total: urls.length });
+
+                    // Check if URL already exists in current recipes or newly added ones
+                    const urlAlreadyExists = newRecipes.some(r => r.sourceUrl && r.sourceUrl.trim() === urls[i].trim());
+                    if (urlAlreadyExists) {
+                        skipped++;
+                        continue;
+                    }
+
+                    try {
+                        const parsedRecipe = await fetchRecipeFromURL(urls[i]);
+
+                        // Check if recipe name already exists
+                        const nameAlreadyExists = newRecipes.some(r => r.name && r.name.trim().toLowerCase() === parsedRecipe.name.trim().toLowerCase());
+                        if (nameAlreadyExists) {
+                            skipped++;
+                            continue;
+                        }
+
+                        const recipe = {
+                            id: Date.now() + i,
+                            ...parsedRecipe,
+                            ingredients: parsedRecipe.ingredients.filter(ing => ing.item.trim()),
+                            isFavorite: false,
+                            rating: 0,
+                            sourceUrl: urls[i].trim(),
+                            category: parsedRecipe.category || autoCategorizeName(parsedRecipe.name)
+                        };
+                        newRecipes.push(recipe);
+                        succeeded++;
+                    } catch (error) {
+                        failed++;
+                        console.log(`Failed to import ${urls[i]}`);
+                    }
+                    // Add small delay to avoid rate limiting
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+
+                saveRecipes(newRecipes);
+                setBatchUrls('');
+                setBatchProgress(null);
+                setShowBatchImport(false);
+                alert(`Import complete! ${succeeded} succeeded, ${failed} failed` + (skipped > 0 ? `, ${skipped} duplicates skipped.` : '.'));
+            };
+
+            const toggleFavorite = (id) => {
+                const updated = recipes.map(r =>
+                    r.id === id ? { ...r, isFavorite: !r.isFavorite } : r
+                );
+                saveRecipes(updated);
+            };
+
+            const setRating = (id, rating) => {
+                const updated = recipes.map(r =>
+                    r.id === id ? { ...r, rating } : r
+                );
+                saveRecipes(updated);
+            };
+
+            const getSourceName = (url) => {
+                if (!url) return '';
+                try {
+                    const hostname = new URL(url).hostname.replace('www.', '');
+                    const sourceMap = {
+                        'cooking.nytimes.com': 'NYT Cooking',
+                        'nytimes.com': 'NYT Cooking',
+                        'allrecipes.com': 'AllRecipes',
+                        'loveandlemons.com': 'Love and Lemons',
+                        'bonappetit.com': 'Bon Appétit',
+                        'foodnetwork.com': 'Food Network',
+                        'epicurious.com': 'Epicurious',
+                        'seriouseats.com': 'Serious Eats',
+                        'simplyrecipes.com': 'Simply Recipes',
+                        'budgetbytes.com': 'Budget Bytes',
+                        'food52.com': 'Food52',
+                        'thekitchn.com': 'The Kitchn',
+                        'tasty.co': 'Tasty',
+                        'delish.com': 'Delish',
+                        'eatingwell.com': 'EatingWell',
+                        'seriouseats.com': 'Serious Eats',
+                    };
+                    return sourceMap[hostname] || hostname;
+                } catch (e) {
+                    return '';
+                }
+            };
+
+            const setCategory = (id, category) => {
+                const updated = recipes.map(r =>
+                    r.id === id ? { ...r, category } : r
+                );
+                saveRecipes(updated);
+            };
+
+            const isDuplicate = (name, sourceUrl, excludeId = null) => {
+                return recipes.some(r => {
+                    if (excludeId && r.id === excludeId) return false;
+                    // Check by source URL first (exact match)
+                    if (sourceUrl && r.sourceUrl && sourceUrl.trim() === r.sourceUrl.trim()) return true;
+                    // Check by exact name match
+                    if (name && r.name && name.trim().toLowerCase() === r.name.trim().toLowerCase()) return true;
+                    return false;
+                });
+            };
+
+            const handleSaveRecipe = () => {
+                if (!newRecipe.name || newRecipe.ingredients.every(i => !i.item)) {
+                    alert('Please add a recipe name and at least one ingredient');
+                    return;
+                }
+
+                // Check for duplicates (skip check when editing)
+                if (!editingRecipe && isDuplicate(newRecipe.name, newRecipe.sourceUrl)) {
+                    alert('This recipe already exists in your collection! Duplicate recipes are not allowed.');
+                    return;
+                }
+
+                const recipe = {
+                    id: editingRecipe?.id || Date.now(),
+                    ...newRecipe,
+                    ingredients: newRecipe.ingredients.filter(i => i.item.trim()),
+                    isFavorite: newRecipe.isFavorite || false,
+                    rating: newRecipe.rating || 0,
+                    sourceUrl: newRecipe.sourceUrl || '',
+                    category: newRecipe.category || autoCategorizeName(newRecipe.name)
+                };
+
+                let updatedRecipes;
+                if (editingRecipe) {
+                    updatedRecipes = recipes.map(r => r.id === editingRecipe.id ? recipe : r);
+                } else {
+                    updatedRecipes = [...recipes, recipe];
+                }
+
+                saveRecipes(updatedRecipes);
+                resetForm();
+            };
+
+            const resetForm = () => {
+                setNewRecipe({
+                    name: '',
+                    ingredients: [{ item: '', amount: '', unit: '' }],
+                    instructions: '',
+                    servings: 4,
+                    prepTime: '',
+                    cookTime: '',
+                    calories: '',
+                    protein: '',
+                    carbs: '',
+                    fat: '',
+                    isFavorite: false,
+                    rating: 0,
+                    sourceUrl: '',
+                    category: 'Dinner'
+                });
+                setShowAddRecipe(false);
+                setEditingRecipe(null);
+                setImportUrl('');
+                setImportMessage('');
+            };
+
+            const [refreshStatus, setRefreshStatus] = useState('');
+            const [isRefreshing, setIsRefreshing] = useState(false);
+
+            const handleRefreshTimes = async () => {
+                const recipesWithUrls = recipes.filter(r => r.sourceUrl && (!r.prepTime || !r.cookTime));
+                if (recipesWithUrls.length === 0) {
+                    setRefreshStatus('All recipes already have prep/cook times!');
+                    setTimeout(() => setRefreshStatus(''), 3000);
+                    return;
+                }
+                setIsRefreshing(true);
+                setRefreshStatus(`Refreshing 0/${recipesWithUrls.length}...`);
+                let updated = [...recipes];
+                let successCount = 0;
+                let failCount = 0;
+                for (let i = 0; i < recipesWithUrls.length; i++) {
+                    const r = recipesWithUrls[i];
+                    setRefreshStatus(`Refreshing ${i + 1}/${recipesWithUrls.length}: ${r.name}...`);
+                    try {
+                        const data = await fetchRecipeFromURL(r.sourceUrl);
+                        if (data.prepTime || data.cookTime) {
+                            updated = updated.map(existing =>
+                                existing.id === r.id
+                                    ? { ...existing, prepTime: data.prepTime || existing.prepTime, cookTime: data.cookTime || existing.cookTime }
+                                    : existing
+                            );
+                            successCount++;
+                        } else {
+                            failCount++;
+                        }
+                    } catch (e) {
+                        failCount++;
+                    }
+                    // Small delay to avoid hammering the proxy
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                saveRecipes(updated);
+                setIsRefreshing(false);
+                setRefreshStatus(`Done! Updated ${successCount} recipes. ${failCount > 0 ? failCount + ' could not be reached.' : ''}`);
+                setTimeout(() => setRefreshStatus(''), 5000);
+            };
+
+            const handleEditRecipe = (recipe) => {
+                setEditingRecipe(recipe);
+                setNewRecipe(recipe);
+                setShowAddRecipe(true);
+            };
+
+            const handleDeleteRecipe = (id) => {
+                if (confirm('Delete this recipe?')) {
+                    const updatedRecipes = recipes.filter(r => r.id !== id);
+                    saveRecipes(updatedRecipes);
+
+                    const updatedPlan = mealPlan.filter(m => m.recipeId !== id);
+                    saveMealPlan(updatedPlan);
+                }
+            };
+
+            const generateMealPlan = () => {
+                const dinners = recipes.filter(r => r.category === 'Dinner');
+                if (dinners.length < 7) {
+                    alert(`You need at least 7 dinner recipes to generate a weekly plan. You currently have ${dinners.length}. Go to the Recipes tab and make sure enough recipes are categorized as "Dinner".`);
+                    return;
+                }
+
+                const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                const shuffled = [...dinners].sort(() => Math.random() - 0.5);
+                const plan = days.map((day, i) => ({
+                    id: Date.now() + i,
+                    day,
+                    recipeId: shuffled[i % shuffled.length].id
+                }));
+
+                saveMealPlan(plan);
+                setActiveTab('mealPlan');
+            };
+
+            const getRecipeById = (id) => recipes.find(r => r.id === id);
+
+            // Known base ingredients — longest match wins
+            const knownIngredients = [
+                'olive oil','vegetable oil','canola oil','sesame oil','coconut oil',
+                'chicken broth','chicken stock','beef broth','beef stock','vegetable broth','vegetable stock',
+                'soy sauce','fish sauce','hot sauce','worcestershire sauce','tomato sauce','tomato paste',
+                'all-purpose flour','bread flour','whole wheat flour','flour',
+                'brown sugar','granulated sugar','powdered sugar','sugar',
+                'kosher salt','sea salt','salt','black pepper','pepper',
+                'baking powder','baking soda',
+                'heavy cream','sour cream','cream cheese','cream',
+                'butter','unsalted butter','salted butter',
+                'parmesan','mozzarella','cheddar','gruyere','feta','ricotta',
+                'chicken thighs','chicken breasts','chicken','ground beef','ground turkey','ground pork',
+                'pork chops','pork tenderloin','pork shoulder','pork',
+                'short ribs','beef','lamb','shrimp','salmon','tuna',
+                'garlic cloves','garlic powder','garlic salt','garlic','ginger','onion','red onion','yellow onion','shallot','scallions','green onions',
+                'lemon juice','lemon zest','lemon','lime juice','lime zest','lime',
+                'orange juice','orange zest','orange',
+                'tomatoes','cherry tomatoes','canned tomatoes','crushed tomatoes','diced tomatoes',
+                'potatoes','sweet potatoes','russet potatoes',
+                'spinach','kale','arugula','lettuce','cabbage','broccoli','cauliflower',
+                'carrots','celery','bell pepper','red pepper','jalapeño','chili',
+                'zucchini','squash','butternut squash','pumpkin','eggplant',
+                'corn','peas','green beans','chickpeas','black beans','white beans','lentils',
+                'rice','brown rice','basmati rice','orzo','pasta','spaghetti','penne','egg noodles',
+                'bread','breadcrumbs','panko',
+                'eggs','egg','milk','whole milk','buttermilk','yogurt','greek yogurt',
+                'honey','maple syrup','vanilla extract','vanilla',
+                'cumin','paprika','smoked paprika','turmeric','cinnamon','nutmeg',
+                'oregano','thyme','rosemary','basil','cilantro','parsley','dill','bay leaves','bay leaf',
+                'chili powder','cayenne','red pepper flakes','curry powder','garam masala',
+                'coriander','cardamom','cloves',
+                'walnuts','almonds','pecans','pine nuts','peanuts','cashews',
+                'raisins','cranberries','dates',
+                'coconut milk','coconut cream','coconut',
+                'pomegranate seeds','pomegranate',
+                'cucumber','avocado','mushrooms','olives',
+                'white wine','red wine','apple cider vinegar','red wine vinegar','balsamic vinegar','vinegar',
+                'dijon mustard','mustard','ketchup','mayonnaise',
+                'capers','anchovies','miso paste',
+            ];
+            // Sort longest first so "olive oil" matches before "oil"
+            const sortedIngredients = [...knownIngredients].sort((a, b) => b.length - a.length);
+
+            const findBaseIngredient = (text) => {
+                const lower = text.toLowerCase();
+                for (const base of sortedIngredients) {
+                    if (lower.includes(base)) return base;
+                }
+                // Fallback: clean up the text and use it as-is
+                return lower
+                    .replace(/\(.*?\)/g, '')
+                    .replace(/,.*$/, '')
+                    .replace(/\b\d[\d\s\/\.½⅓⅔¼¾⅛⅜⅝⅞]*\b/g, '')
+                    .replace(/\b(cups?|tablespoons?|tbsp|teaspoons?|tsp|ounces?|oz|pounds?|lbs?|cloves?|cans?|slices?|pieces?|pinch|bunch|sprigs?|stalks?|heads?|quarts?|pints?|sticks?|large|medium|small|chopped|diced|minced|sliced|grated|shredded|crushed|peeled|trimmed|melted|softened|divided|freshly|finely|coarsely|roughly|thinly|optional|to taste|for serving|for garnish|extra-virgin)\b/gi, '')
+                    .replace(/[^a-z\s]/g, '')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+            };
+
+            const parseAmount = (text) => {
+                // Extract numeric amount from beginning of text
+                const match = text.match(/^([\d\s\/\.½⅓⅔¼¾⅛⅜⅝⅞]+)/);
+                if (!match) return 0;
+                return match[1].trim().split(/\s+/).reduce((sum, part) => {
+                    if (part.includes('/')) {
+                        const [n, d] = part.split('/');
+                        return sum + (parseFloat(n) / parseFloat(d));
+                    }
+                    const unicodeFracs = {'½':0.5,'⅓':0.33,'⅔':0.67,'¼':0.25,'¾':0.75,'⅛':0.125,'⅜':0.375,'⅝':0.625,'⅞':0.875};
+                    return sum + (unicodeFracs[part] || parseFloat(part) || 0);
+                }, 0);
+            };
+
+            const getShoppingList = () => {
+                const list = {};
+                mealPlan.forEach(meal => {
+                    if (meal.customText) return; // Skip custom days
+                    const recipe = getRecipeById(meal.recipeId);
+                    if (recipe) {
+                        recipe.ingredients.forEach(ing => {
+                            // Build the full text from all fields
+                            const fullText = [ing.amount, ing.unit, ing.item].filter(Boolean).join(' ').trim();
+                            if (!fullText) return;
+
+                            // Find the base ingredient via keyword matching
+                            const baseKey = findBaseIngredient(fullText);
+                            if (!baseKey) return;
+
+                            // Parse the amount
+                            const amount = parseFloat(ing.amount) || parseAmount(ing.item || '');
+
+                            if (list[baseKey]) {
+                                list[baseKey].totalAmount += amount;
+                                if (!list[baseKey].recipes.includes(recipe.name)) {
+                                    list[baseKey].recipes.push(recipe.name);
+                                }
+                                // Keep all original lines for context
+                                list[baseKey].details.push(fullText);
+                            } else {
+                                list[baseKey] = {
+                                    baseKey,
+                                    totalAmount: amount,
+                                    recipes: [recipe.name],
+                                    details: [fullText]
+                                };
+                            }
+                        });
+                    }
+                });
+
+                // Build final display
+                const result = Object.values(list).map(entry => {
+                    // Deduplicate and combine the detail lines for display
+                    const uniqueDetails = [...new Set(entry.details)];
+                    return {
+                        item: entry.baseKey,
+                        baseKey: entry.baseKey,
+                        details: uniqueDetails,
+                        recipes: entry.recipes
+                    };
+                });
+
+                return result.sort((a, b) => a.item.localeCompare(b.item));
+            };
+
+            const clearMealPlan = () => {
+                if (confirm('Clear the entire meal plan?')) {
+                    saveMealPlan([]);
+                }
+            };
+
+            const getFilteredAndSortedRecipes = () => {
+                let filtered = recipes.filter(r => {
+                    const matchesSearch = r.name.toLowerCase().includes(searchQuery.toLowerCase());
+                    const matchesFavorite = !filterFavoritesOnly || r.isFavorite;
+                    const matchesCategory = filterCategory === 'All' || r.category === filterCategory;
+                    return matchesSearch && matchesFavorite && matchesCategory;
+                });
+
+                if (sortByRating) {
+                    filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+                }
+
+                return filtered;
+            };
+
+            const exportRecipes = () => {
+                const data = JSON.stringify(recipes, null, 2);
+                const blob = new Blob([data], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const date = new Date().toISOString().split('T')[0];
+                a.download = `recipes-backup-${date}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            };
+
+            const importRecipesFile = (event) => {
+                const file = event.target.files?.[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const imported = JSON.parse(e.target.result);
+                        const existingNames = new Set(recipes.map(r => r.name.toLowerCase()));
+                        const newRecipes = imported.filter(r => !existingNames.has(r.name.toLowerCase()));
+
+                        if (newRecipes.length > 0) {
+                            saveRecipes([...recipes, ...newRecipes]);
+                            alert(`Imported ${newRecipes.length} new recipes. ${imported.length - newRecipes.length} duplicates were skipped.`);
+                        } else {
+                            alert('All recipes in this file already exist in your collection.');
+                        }
+                    } catch (error) {
+                        alert('Could not parse JSON file. Make sure it was exported from this app.');
+                    }
+                };
+                reader.readAsText(file);
+            };
+
+            const displayedRecipes = getFilteredAndSortedRecipes();
+
+            return (
+                <div className="min-h-screen bg-gray-50 pb-20">
+                    <div className="bg-white shadow-sm sticky top-0 z-10">
+                        <div className="max-w-4xl mx-auto px-4 py-4">
+                            <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                                <ChefHat size={28} className="text-gray-700" />
+                                Recipe & Meal Planner
+                            </h1>
+                        </div>
+                    </div>
+
+                    {showDataLossWarning && (
+                        <div className="bg-yellow-50 border-b border-yellow-200">
+                            <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+                                <p className="text-sm text-yellow-800">
+                                    Your recipes were restored from an automatic backup. We recommend downloading a backup file for extra safety.
+                                </p>
+                                <div className="flex gap-2 ml-4">
+                                    <button onClick={exportRecipes} className="text-xs bg-yellow-600 text-white px-3 py-1 rounded hover:bg-yellow-700">
+                                        Download Backup
+                                    </button>
+                                    <button onClick={() => setShowDataLossWarning(false)} className="text-xs text-yellow-600 hover:text-yellow-800">
+                                        Dismiss
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="bg-white shadow-sm sticky top-16 z-10">
+                        <div className="max-w-4xl mx-auto px-4">
+                            <div className="flex gap-1">
+                                <button
+                                    onClick={() => setActiveTab('recipes')}
+                                    className={`flex-1 py-3 text-sm font-medium border-b-2 transition ${
+                                        activeTab === 'recipes'
+                                            ? 'border-gray-800 text-gray-800'
+                                            : 'border-transparent text-gray-500'
+                                    }`}
+                                >
+                                    📖 Recipes ({recipes.length})
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('mealPlan')}
+                                    className={`flex-1 py-3 text-sm font-medium border-b-2 transition ${
+                                        activeTab === 'mealPlan'
+                                            ? 'border-gray-800 text-gray-800'
+                                            : 'border-transparent text-gray-500'
+                                    }`}
+                                >
+                                    📅 Meal Plan
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('shopping')}
+                                    className={`flex-1 py-3 text-sm font-medium border-b-2 transition ${
+                                        activeTab === 'shopping'
+                                            ? 'border-gray-800 text-gray-800'
+                                            : 'border-transparent text-gray-500'
+                                    }`}
+                                >
+                                    🛒 Shopping
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('tools')}
+                                    className={`flex-1 py-3 text-sm font-medium border-b-2 transition ${
+                                        activeTab === 'tools'
+                                            ? 'border-gray-800 text-gray-800'
+                                            : 'border-transparent text-gray-500'
+                                    }`}
+                                >
+                                    ⚙️ Tools
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="max-w-4xl mx-auto px-4 py-6">
+                        {activeTab === 'recipes' && (
+                            <div>
+                                {!showAddRecipe ? (
+                                    <>
+                                        <div className="flex flex-col gap-3 mb-4">
+                                            <div className="flex gap-2 flex-wrap">
+                                                <button
+                                                    onClick={() => setShowAddRecipe(true)}
+                                                    className="flex-1 min-w-40 bg-gray-800 text-white py-3 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-gray-700 transition"
+                                                >
+                                                    <Plus size={20} /> Add New Recipe
+                                                </button>
+                                                <button
+                                                    onClick={() => setShowBatchImport(!showBatchImport)}
+                                                    className="flex-1 min-w-40 bg-blue-600 text-white py-3 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-blue-700 transition"
+                                                >
+                                                    <Upload size={20} /> Batch Import
+                                                </button>
+                                            </div>
+
+                                            {showBatchImport && (
+                                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                                    <h3 className="font-semibold text-blue-900 mb-2">Batch Import URLs</h3>
+                                                    <textarea
+                                                        value={batchUrls}
+                                                        onChange={(e) => setBatchUrls(e.target.value)}
+                                                        placeholder="Paste recipe URLs (one per line)&#10;https://www.allrecipes.com/recipe/...&#10;https://www.nytimes.com/recipes/..."
+                                                        className="w-full border rounded-lg px-3 py-2 h-24 text-sm mb-2"
+                                                    />
+                                                    {batchProgress && (
+                                                        <p className="text-sm text-blue-700 mb-2">
+                                                            Importing {batchProgress.current} of {batchProgress.total}...
+                                                        </p>
+                                                    )}
+                                                    <button
+                                                        onClick={handleBatchImport}
+                                                        disabled={batchProgress !== null || batchUrls.trim().length === 0}
+                                                        className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    >
+                                                        {batchProgress ? `Importing... ${batchProgress.current}/${batchProgress.total}` : 'Import All'}
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="bg-white rounded-lg shadow p-4 mb-4">
+                                            <div className="flex flex-col gap-3">
+                                                <input
+                                                    type="text"
+                                                    value={searchQuery}
+                                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                                    placeholder="Search recipes..."
+                                                    className="w-full border rounded-lg px-3 py-2 text-sm"
+                                                />
+                                                <div className="flex gap-2 flex-wrap">
+                                                    {['All', ...CATEGORIES].map(cat => (
+                                                        <button
+                                                            key={cat}
+                                                            onClick={() => setFilterCategory(cat)}
+                                                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                                                                filterCategory === cat
+                                                                    ? 'bg-gray-800 text-white'
+                                                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                            }`}
+                                                        >
+                                                            {cat}
+                                                        </button>
+                                                    ))}
+                                                    <span className="border-l border-gray-300 mx-1"></span>
+                                                    <button
+                                                        onClick={() => setFilterFavoritesOnly(!filterFavoritesOnly)}
+                                                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                                                            filterFavoritesOnly
+                                                                ? 'bg-red-600 text-white'
+                                                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                        }`}
+                                                    >
+                                                        <Heart size={16} className="inline mr-1" />
+                                                        Favorites
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setSortByRating(!sortByRating)}
+                                                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                                                            sortByRating
+                                                                ? 'bg-yellow-600 text-white'
+                                                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                        }`}
+                                                    >
+                                                        <Star size={16} className="inline mr-1" />
+                                                        Top Rated
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {displayedRecipes.length === 0 ? (
+                                            <div className="text-center py-12 text-gray-400">
+                                                <ChefHat size={48} className="mx-auto mb-3 opacity-50" />
+                                                <p>{searchQuery || filterFavoritesOnly ? 'No recipes match your filters.' : 'No recipes yet. Add your first recipe!'}</p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                {displayedRecipes.map(recipe => (
+                                                    <div key={recipe.id} className="bg-white rounded-lg shadow p-4">
+                                                        <div className="flex justify-between items-start mb-2">
+                                                            <h3 className="font-semibold text-lg text-gray-800">{recipe.name}</h3>
+                                                            <div className="flex gap-1">
+                                                                <button
+                                                                    onClick={() => toggleFavorite(recipe.id)}
+                                                                    className={`p-2 rounded transition ${recipe.isFavorite ? 'text-red-600' : 'text-gray-400 hover:text-red-600'}`}
+                                                                    title={recipe.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                                                                >
+                                                                    <Heart size={18} filled={recipe.isFavorite} />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleEditRecipe(recipe)}
+                                                                    className="text-blue-600 hover:text-blue-700 p-2"
+                                                                >
+                                                                    <Edit2 size={18} />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteRecipe(recipe.id)}
+                                                                    className="text-red-600 hover:text-red-700 p-2"
+                                                                >
+                                                                    <Trash2 size={18} />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Category selector */}
+                                                        <div className="mb-2">
+                                                            <select
+                                                                value={recipe.category || 'Dinner'}
+                                                                onChange={(e) => setCategory(recipe.id, e.target.value)}
+                                                                className="text-xs bg-gray-100 border border-gray-300 rounded-full px-3 py-1 text-gray-700 cursor-pointer hover:bg-gray-200 transition"
+                                                            >
+                                                                {CATEGORIES.map(cat => (
+                                                                    <option key={cat} value={cat}>{cat}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+
+                                                        {/* Star rating */}
+                                                        <div className="flex gap-1 mb-2">
+                                                            {[1, 2, 3, 4, 5].map(star => (
+                                                                <button
+                                                                    key={star}
+                                                                    onClick={() => setRating(recipe.id, recipe.rating === star ? 0 : star)}
+                                                                    className="p-1 transition"
+                                                                    title={`Rate ${star} stars`}
+                                                                >
+                                                                    <Star
+                                                                        size={16}
+                                                                        filled={star <= (recipe.rating || 0)}
+                                                                        className={star <= (recipe.rating || 0) ? 'text-yellow-400' : 'text-gray-300'}
+                                                                    />
+                                                                </button>
+                                                            ))}
+                                                            {recipe.rating > 0 && (
+                                                                <span className="text-xs text-gray-500 ml-1 self-center">
+                                                                    {recipe.rating} star{recipe.rating !== 1 ? 's' : ''}
+                                                                </span>
+                                                            )}
+                                                        </div>
+
+                                                        {(recipe.prepTime || recipe.cookTime) && (
+                                                            <div className="flex gap-3 text-sm text-gray-500 mb-1">
+                                                                {recipe.prepTime && <span>Prep: {recipe.prepTime}</span>}
+                                                                {recipe.cookTime && <span>Cook: {recipe.cookTime}</span>}
+                                                            </div>
+                                                        )}
+                                                        <p className="text-sm text-gray-500 mb-1">Servings: {recipe.servings}</p>
+                                                        {recipe.sourceUrl && (
+                                                            <div className="mb-2">
+                                                                <span className="text-xs text-gray-500">Source: </span>
+                                                                <a
+                                                                    href={recipe.sourceUrl}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="text-xs text-blue-600 hover:text-blue-800 underline"
+                                                                >
+                                                                    {getSourceName(recipe.sourceUrl)} ↗
+                                                                </a>
+                                                            </div>
+                                                        )}
+                                                        {recipe.calories && (
+                                                            <div className="flex gap-3 text-xs text-gray-600 mb-2">
+                                                                <span>🔥 {recipe.calories} cal</span>
+                                                                {recipe.protein && <span>💪 {recipe.protein}g protein</span>}
+                                                                {recipe.carbs && <span>🍞 {recipe.carbs}g carbs</span>}
+                                                                {recipe.fat && <span>🥑 {recipe.fat}g fat</span>}
+                                                            </div>
+                                                        )}
+                                                        <details className="text-sm">
+                                                            <summary className="cursor-pointer text-gray-700 font-medium">View Details</summary>
+                                                            <div className="mt-3">
+                                                                <p className="font-medium mb-1">Ingredients:</p>
+                                                                <ul className="list-disc list-inside mb-3 text-gray-700">
+                                                                    {recipe.ingredients.map((ing, i) => (
+                                                                        <li key={i}>
+                                                                            {ing.amount} {ing.unit} {ing.item}
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                                {recipe.instructions && (
+                                                                    <>
+                                                                        <p className="font-medium mb-1">Instructions:</p>
+                                                                        <p className="text-gray-700 whitespace-pre-line">{recipe.instructions}</p>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        </details>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    <div className="bg-white rounded-lg shadow p-4">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h2 className="text-xl font-bold text-gray-800">
+                                                {editingRecipe ? 'Edit Recipe' : 'Add New Recipe'}
+                                            </h2>
+                                            <button onClick={resetForm} className="text-gray-500">
+                                                <X size={24} />
+                                            </button>
+                                        </div>
+
+                                        {importMessage && (
+                                            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-center gap-2">
+                                                <Check size={16} />
+                                                {importMessage}
+                                            </div>
+                                        )}
+
+                                        {/* Import Section */}
+                                        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                            <label className="block text-sm font-medium mb-2 text-gray-700">
+                                                Import Options
+                                            </label>
+                                            <p className="text-xs text-gray-500 mb-3">
+                                                Import a recipe from a URL, clipboard, or paste text
+                                            </p>
+                                            <div className="space-y-2 mb-3">
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="url"
+                                                        value={importUrl}
+                                                        onChange={(e) => setImportUrl(e.target.value)}
+                                                        placeholder="https://www.allrecipes.com/recipe/..."
+                                                        className="flex-1 border rounded-lg px-3 py-2 text-sm"
+                                                    />
+                                                    <button
+                                                        onClick={handleImportFromURL}
+                                                        disabled={isImporting || !importUrl.trim()}
+                                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                                    >
+                                                        <Download size={16} />
+                                                        {isImporting ? 'Importing...' : 'Import URL'}
+                                                    </button>
+                                                </div>
+                                                <button
+                                                    onClick={() => setShowPasteBox(!showPasteBox)}
+                                                    className={`w-full px-4 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 ${showPasteBox ? 'bg-gray-200 text-gray-700' : 'bg-green-600 text-white hover:bg-green-700'}`}
+                                                >
+                                                    <Copy size={16} />
+                                                    Paste from Recipe Clipper
+                                                </button>
+                                                {showPasteBox && (
+                                                    <div className="mt-2 border-2 border-green-300 rounded-lg p-3 bg-green-50">
+                                                        <p className="text-xs text-green-800 mb-2">Paste the copied recipe data below (Cmd+V), then click Import:</p>
+                                                        <textarea
+                                                            id="pasteImportBox"
+                                                            className="w-full border rounded-lg px-3 py-2 text-sm h-20 font-mono"
+                                                            placeholder="Paste recipe data here (Cmd+V)..."
+                                                            autoFocus
+                                                        />
+                                                        <button
+                                                            onClick={() => {
+                                                                const ta = document.getElementById('pasteImportBox');
+                                                                if (ta && ta.value.trim()) {
+                                                                    handlePasteImport(ta.value.trim());
+                                                                }
+                                                            }}
+                                                            className="mt-2 w-full bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition"
+                                                        >
+                                                            Import Pasted Data
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="block text-sm font-medium mb-1">Recipe Name</label>
+                                                <input
+                                                    type="text"
+                                                    value={newRecipe.name}
+                                                    onChange={(e) => setNewRecipe({ ...newRecipe, name: e.target.value })}
+                                                    className="w-full border rounded-lg px-3 py-2"
+                                                    placeholder="e.g., Chicken Stir Fry"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium mb-1">Category</label>
+                                                <select
+                                                    value={newRecipe.category || 'Dinner'}
+                                                    onChange={(e) => setNewRecipe({ ...newRecipe, category: e.target.value })}
+                                                    className="w-full border rounded-lg px-3 py-2"
+                                                >
+                                                    {CATEGORIES.map(cat => (
+                                                        <option key={cat} value={cat}>{cat}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
+                                            <div className="grid grid-cols-3 gap-3">
+                                                <div>
+                                                    <label className="block text-sm font-medium mb-1">Servings</label>
+                                                    <input
+                                                        type="number"
+                                                        value={newRecipe.servings}
+                                                        onChange={(e) => setNewRecipe({ ...newRecipe, servings: e.target.value })}
+                                                        className="w-full border rounded-lg px-3 py-2"
+                                                        min="1"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium mb-1">Prep Time</label>
+                                                    <input
+                                                        type="text"
+                                                        value={newRecipe.prepTime || ''}
+                                                        onChange={(e) => setNewRecipe({ ...newRecipe, prepTime: e.target.value })}
+                                                        className="w-full border rounded-lg px-3 py-2"
+                                                        placeholder="15 min"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium mb-1">Cook Time</label>
+                                                    <input
+                                                        type="text"
+                                                        value={newRecipe.cookTime || ''}
+                                                        onChange={(e) => setNewRecipe({ ...newRecipe, cookTime: e.target.value })}
+                                                        className="w-full border rounded-lg px-3 py-2"
+                                                        placeholder="30 min"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium mb-2">Ingredients</label>
+                                                {newRecipe.ingredients.map((ing, i) => (
+                                                    <div key={i} className="flex gap-2 mb-2">
+                                                        <input
+                                                            type="text"
+                                                            value={ing.amount}
+                                                            onChange={(e) => updateIngredient(i, 'amount', e.target.value)}
+                                                            className="w-20 border rounded-lg px-2 py-2 text-sm"
+                                                            placeholder="Amt"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            value={ing.unit}
+                                                            onChange={(e) => updateIngredient(i, 'unit', e.target.value)}
+                                                            className="w-20 border rounded-lg px-2 py-2 text-sm"
+                                                            placeholder="Unit"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            value={ing.item}
+                                                            onChange={(e) => updateIngredient(i, 'item', e.target.value)}
+                                                            className="flex-1 border rounded-lg px-3 py-2 text-sm"
+                                                            placeholder="Ingredient"
+                                                        />
+                                                        <button
+                                                            onClick={() => removeIngredient(i)}
+                                                            className="text-red-600"
+                                                        >
+                                                            <X size={20} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                                <button
+                                                    onClick={addIngredient}
+                                                    className="text-blue-600 text-sm font-medium"
+                                                >
+                                                    + Add Ingredient
+                                                </button>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium mb-1">Instructions</label>
+                                                <textarea
+                                                    value={newRecipe.instructions}
+                                                    onChange={(e) => setNewRecipe({ ...newRecipe, instructions: e.target.value })}
+                                                    className="w-full border rounded-lg px-3 py-2 h-32"
+                                                    placeholder="Step-by-step cooking instructions..."
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium mb-2">Nutrition (per serving, optional)</label>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <input
+                                                        type="number"
+                                                        value={newRecipe.calories}
+                                                        onChange={(e) => setNewRecipe({ ...newRecipe, calories: e.target.value })}
+                                                        className="border rounded-lg px-3 py-2 text-sm"
+                                                        placeholder="Calories"
+                                                    />
+                                                    <input
+                                                        type="number"
+                                                        value={newRecipe.protein}
+                                                        onChange={(e) => setNewRecipe({ ...newRecipe, protein: e.target.value })}
+                                                        className="border rounded-lg px-3 py-2 text-sm"
+                                                        placeholder="Protein (g)"
+                                                    />
+                                                    <input
+                                                        type="number"
+                                                        value={newRecipe.carbs}
+                                                        onChange={(e) => setNewRecipe({ ...newRecipe, carbs: e.target.value })}
+                                                        className="border rounded-lg px-3 py-2 text-sm"
+                                                        placeholder="Carbs (g)"
+                                                    />
+                                                    <input
+                                                        type="number"
+                                                        value={newRecipe.fat}
+                                                        onChange={(e) => setNewRecipe({ ...newRecipe, fat: e.target.value })}
+                                                        className="border rounded-lg px-3 py-2 text-sm"
+                                                        placeholder="Fat (g)"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                onClick={handleSaveRecipe}
+                                                className="w-full bg-gray-800 text-white py-3 rounded-lg font-medium hover:bg-gray-700 transition"
+                                            >
+                                                {editingRecipe ? 'Update Recipe' : 'Save Recipe'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'mealPlan' && (
+                            <div>
+                                {mealPlan.length === 0 ? (
+                                    <div className="text-center py-12">
+                                        <Calendar size={48} className="mx-auto mb-3 text-gray-300" />
+                                        <p className="text-gray-500 mb-4">No meal plan yet</p>
+                                        <button
+                                            onClick={generateMealPlan}
+                                            className="bg-gray-800 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 transition"
+                                        >
+                                            Generate Weekly Plan
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h2 className="text-xl font-bold text-gray-800">This Week's Dinners</h2>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={generateMealPlan}
+                                                    className="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-700 transition"
+                                                >
+                                                    Regenerate
+                                                </button>
+                                                <button
+                                                    onClick={clearMealPlan}
+                                                    className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition"
+                                                >
+                                                    Clear
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-3">
+                                            {mealPlan.map(meal => {
+                                                const recipe = getRecipeById(meal.recipeId);
+                                                const dinners = recipes.filter(r => r.category === 'Dinner');
+                                                const isCustom = !!meal.customText;
+                                                const isEditing = editingMealId === meal.id;
+                                                const searchResults = mealSearchQuery.trim()
+                                                    ? dinners.filter(r => r.name.toLowerCase().includes(mealSearchQuery.toLowerCase())).slice(0, 5)
+                                                    : [];
+                                                const queryMatchesNoRecipe = mealSearchQuery.trim() && searchResults.length === 0;
+                                                const queryIsCustom = mealSearchQuery.trim() && !dinners.some(r => r.name.toLowerCase() === mealSearchQuery.toLowerCase());
+                                                return (
+                                                    <div
+                                                        key={meal.id}
+                                                        className={`rounded-lg shadow ${isCustom ? 'bg-amber-50 border border-amber-200' : 'bg-white'} ${draggedMealId === meal.id ? 'opacity-40' : ''} transition-opacity`}
+                                                        draggable
+                                                        onDragStart={(e) => {
+                                                            setDraggedMealId(meal.id);
+                                                            e.dataTransfer.effectAllowed = 'move';
+                                                        }}
+                                                        onDragOver={(e) => {
+                                                            e.preventDefault();
+                                                            e.dataTransfer.dropEffect = 'move';
+                                                            e.currentTarget.style.borderTop = '3px solid #3b82f6';
+                                                        }}
+                                                        onDragLeave={(e) => {
+                                                            e.currentTarget.style.borderTop = '';
+                                                        }}
+                                                        onDrop={(e) => {
+                                                            e.preventDefault();
+                                                            e.currentTarget.style.borderTop = '';
+                                                            if (draggedMealId && draggedMealId !== meal.id) {
+                                                                const draggedMeal = mealPlan.find(m => m.id === draggedMealId);
+                                                                const targetMeal = meal;
+                                                                if (draggedMeal && targetMeal) {
+                                                                    const updated = mealPlan.map(m => {
+                                                                        if (m.id === draggedMeal.id) return { ...m, day: targetMeal.day };
+                                                                        if (m.id === targetMeal.id) return { ...m, day: draggedMeal.day };
+                                                                        return m;
+                                                                    });
+                                                                    updated.sort((a, b) => {
+                                                                        const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+                                                                        return days.indexOf(a.day) - days.indexOf(b.day);
+                                                                    });
+                                                                    saveMealPlan(updated);
+                                                                }
+                                                            }
+                                                            setDraggedMealId(null);
+                                                        }}
+                                                        onDragEnd={() => setDraggedMealId(null)}
+                                                    >
+                                                        <div className="p-4">
+                                                            <div className="flex justify-between items-start">
+                                                                <div className="flex items-start gap-2 flex-1">
+                                                                    <span className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 mt-1" title="Drag to swap days">⠿</span>
+                                                                    <div className="flex-1">
+                                                                    <p className="text-sm font-medium text-gray-600">{meal.day}</p>
+                                                                    {isCustom ? (
+                                                                        <div>
+                                                                            <h3 className="font-semibold text-lg text-amber-800">{meal.customText}</h3>
+                                                                            <p className="text-xs text-amber-600 mt-1">Custom plan</p>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div>
+                                                                            <h3 className="font-semibold text-lg text-gray-800">{recipe?.name}</h3>
+                                                                            {recipe?.sourceUrl && (
+                                                                                <a href={recipe.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:text-blue-800 underline">
+                                                                                    {getSourceName(recipe.sourceUrl)} ↗
+                                                                                </a>
+                                                                            )}
+                                                                            {recipe?.calories && (
+                                                                                <div className="flex gap-3 text-xs text-gray-600 mt-1">
+                                                                                    <span>🔥 {recipe.calories} cal</span>
+                                                                                    {recipe.protein && <span>💪 {recipe.protein}g protein</span>}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                </div>
+                                                                <div className="flex gap-1 ml-3 items-start">
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            const otherIds = mealPlan.filter(m => m.id !== meal.id && !m.customText).map(m => m.recipeId);
+                                                                            const available = dinners.filter(r => !otherIds.includes(r.id));
+                                                                            const pool = available.length > 0 ? available : dinners;
+                                                                            const random = pool[Math.floor(Math.random() * pool.length)];
+                                                                            const updated = mealPlan.map(m => m.id === meal.id ? { ...m, recipeId: random.id, customText: null } : m);
+                                                                            saveMealPlan(updated);
+                                                                            setEditingMealId(null);
+                                                                        }}
+                                                                        className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition"
+                                                                        title="Shuffle this day"
+                                                                    >
+                                                                        🔀
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            if (isEditing) {
+                                                                                setEditingMealId(null);
+                                                                                setMealSearchQuery('');
+                                                                            } else {
+                                                                                setEditingMealId(meal.id);
+                                                                                setMealSearchQuery('');
+                                                                            }
+                                                                        }}
+                                                                        className={`p-2 rounded-lg transition ${isEditing ? 'text-blue-600 bg-blue-50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}
+                                                                        title="Change meal"
+                                                                    >
+                                                                        ✏️
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                            {!isCustom && (
+                                                                <div className="mt-2 ml-6">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={meal.note || ''}
+                                                                        onChange={(e) => {
+                                                                            const updated = mealPlan.map(m => m.id === meal.id ? { ...m, note: e.target.value } : m);
+                                                                            saveMealPlan(updated);
+                                                                        }}
+                                                                        className="w-full text-sm text-gray-500 italic bg-transparent border-0 border-b border-dashed border-gray-200 focus:border-gray-400 focus:outline-none px-0 py-1 placeholder-gray-300"
+                                                                        placeholder="+ add a note"
+                                                                    />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        {isEditing && (
+                                                            <div className="px-4 pb-4 border-t border-gray-100 pt-3">
+                                                                <input
+                                                                    type="text"
+                                                                    value={mealSearchQuery}
+                                                                    onChange={(e) => setMealSearchQuery(e.target.value)}
+                                                                    placeholder="Search recipes or type a custom plan..."
+                                                                    className="w-full border rounded-lg px-3 py-2 text-sm mb-1"
+                                                                    autoFocus
+                                                                    onKeyDown={(e) => {
+                                                                        if (e.key === 'Escape') {
+                                                                            setEditingMealId(null);
+                                                                            setMealSearchQuery('');
+                                                                        }
+                                                                        if (e.key === 'Enter' && mealSearchQuery.trim()) {
+                                                                            if (searchResults.length > 0) {
+                                                                                const updated = mealPlan.map(m => m.id === meal.id ? { ...m, recipeId: searchResults[0].id, customText: null } : m);
+                                                                                saveMealPlan(updated);
+                                                                            } else {
+                                                                                const updated = mealPlan.map(m => m.id === meal.id ? { ...m, customText: mealSearchQuery.trim() } : m);
+                                                                                saveMealPlan(updated);
+                                                                            }
+                                                                            setEditingMealId(null);
+                                                                            setMealSearchQuery('');
+                                                                        }
+                                                                    }}
+                                                                />
+                                                                {mealSearchQuery.trim() && (
+                                                                    <div className="border rounded-lg overflow-hidden mt-1">
+                                                                        {searchResults.map(r => (
+                                                                            <button
+                                                                                key={r.id}
+                                                                                onClick={() => {
+                                                                                    const updated = mealPlan.map(m => m.id === meal.id ? { ...m, recipeId: r.id, customText: null } : m);
+                                                                                    saveMealPlan(updated);
+                                                                                    setEditingMealId(null);
+                                                                                    setMealSearchQuery('');
+                                                                                }}
+                                                                                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 border-b last:border-b-0 flex justify-between items-center"
+                                                                            >
+                                                                                <span>{r.name}</span>
+                                                                                {r.rating > 0 && <span className="text-xs text-yellow-500">{'★'.repeat(r.rating)}</span>}
+                                                                            </button>
+                                                                        ))}
+                                                                        {queryIsCustom && (
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    const updated = mealPlan.map(m => m.id === meal.id ? { ...m, customText: mealSearchQuery.trim() } : m);
+                                                                                    saveMealPlan(updated);
+                                                                                    setEditingMealId(null);
+                                                                                    setMealSearchQuery('');
+                                                                                }}
+                                                                                className="w-full text-left px-3 py-2 text-sm hover:bg-amber-50 bg-amber-50/50 border-t border-amber-200 text-amber-800"
+                                                                            >
+                                                                                Set as custom: <span className="font-medium">"{mealSearchQuery.trim()}"</span>
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                                <p className="text-xs text-gray-400 mt-2">Search for a recipe, or type anything and press Enter for a custom plan</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'shopping' && (
+                            <div>
+                                {mealPlan.length === 0 ? (
+                                    <div className="text-center py-12 text-gray-400">
+                                        <ShoppingCart size={48} className="mx-auto mb-3 opacity-50" />
+                                        <p>Generate a meal plan first to see your shopping list</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <h2 className="text-xl font-bold text-gray-800 mb-2">Shopping List</h2>
+                                        <p className="text-sm text-gray-500 mb-4">{getShoppingList().length} items from {mealPlan.filter(m => !m.customText).length} meals</p>
+                                        <div className="bg-white rounded-lg shadow p-4">
+                                            <ul className="space-y-2">
+                                                {getShoppingList()
+                                                    .sort((a, b) => (checkedItems[a.baseKey] ? 1 : 0) - (checkedItems[b.baseKey] ? 1 : 0))
+                                                    .map((item, i) => (
+                                                    <li key={item.baseKey} className="flex items-start gap-3 py-2 border-b last:border-0">
+                                                        <div className="mt-1">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={checkedItems[item.baseKey] || false}
+                                                                onChange={() => setCheckedItems(prev => ({...prev, [item.baseKey]: !prev[item.baseKey]}))}
+                                                                className="w-5 h-5 rounded border-gray-300 text-green-600 cursor-pointer"
+                                                            />
+                                                        </div>
+                                                        <div className={`flex-1 ${checkedItems[item.baseKey] ? 'opacity-40 line-through' : ''}`}>
+                                                            <p className="font-medium text-gray-800 capitalize">{item.item}</p>
+                                                            {item.details.length > 0 && (
+                                                                <div className="text-xs text-gray-500 mt-0.5">
+                                                                    {item.details.map((d, j) => <span key={j} className="block">{d}</span>)}
+                                                                </div>
+                                                            )}
+                                                            <p className="text-xs text-gray-400 mt-0.5">
+                                                                {item.recipes.join(', ')}
+                                                            </p>
+                                                        </div>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'tools' && (
+                            <div className="space-y-6">
+                                {/* Bookmarklet Section */}
+                                <div className="bg-white rounded-lg shadow p-6">
+                                    <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                        <Copy size={24} className="text-gray-700" />
+                                        Bookmarklet
+                                    </h2>
+                                    <p className="text-sm text-gray-600 mb-4">
+                                        Drag the link below to your browser bookmarks bar. Then, when you're on a recipe website, click the bookmarklet to extract the recipe and copy it to your clipboard.
+                                    </p>
+                                    <div className="bg-gray-50 border border-gray-300 rounded-lg p-4 mb-4">
+                                        <a
+                                            href={generateBookmarkletCode()}
+                                            className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition cursor-grab active:cursor-grabbing"
+                                            title="Drag this to your bookmarks bar"
+                                            draggable={true}
+                                        >
+                                            📋 Recipe Clipper
+                                        </a>
+                                    </div>
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                        <h3 className="font-semibold text-blue-900 mb-2">How to use:</h3>
+                                        <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+                                            <li>Drag the "Recipe Clipper" button above to your bookmarks bar (one-time setup)</li>
+                                            <li>Visit a recipe website (NYT Cooking, AllRecipes, Love and Lemons, etc.)</li>
+                                            <li>Click the "Recipe Clipper" bookmarklet</li>
+                                            <li>Your Meal Planner opens automatically with the recipe ready to save!</li>
+                                        </ol>
+                                    </div>
+                                </div>
+
+                                {/* Import/Export Section */}
+                                <div className="bg-white rounded-lg shadow p-6">
+                                    <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                        <Settings size={24} className="text-gray-700" />
+                                        Backup & Restore
+                                    </h2>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <button
+                                            onClick={exportRecipes}
+                                            className="bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition flex items-center justify-center gap-2"
+                                        >
+                                            <Download size={20} />
+                                            Export Recipes
+                                        </button>
+                                        <label className="bg-orange-600 text-white py-3 rounded-lg font-medium hover:bg-orange-700 transition flex items-center justify-center gap-2 cursor-pointer">
+                                            <Upload size={20} />
+                                            Import Recipes
+                                            <input
+                                                type="file"
+                                                accept=".json"
+                                                onChange={importRecipesFile}
+                                                className="hidden"
+                                            />
+                                        </label>
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-3">
+                                        Export creates a JSON backup of all your recipes. Import allows you to restore recipes from a previously exported file.
+                                    </p>
+                                </div>
+
+                                {/* NYT Cooking Bulk Import */}
+                                <div className="bg-white rounded-lg shadow p-6">
+                                    <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                        📰 NYT Cooking Bulk Import
+                                    </h2>
+                                    <p className="text-sm text-gray-600 mb-4">
+                                        Extract all your saved recipes from NYT Cooking's Recipe Box in one shot. Follow these steps:
+                                    </p>
+                                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                                        <ol className="text-sm text-amber-900 space-y-2 list-decimal list-inside">
+                                            <li>Go to <a href="https://cooking.nytimes.com/recipe-box" target="_blank" className="underline font-medium">cooking.nytimes.com/recipe-box</a> and make sure you're logged in</li>
+                                            <li>Scroll all the way down until every recipe has loaded (the page uses lazy loading, so keep scrolling until no more appear)</li>
+                                            <li>Open your browser's JavaScript Console:
+                                                <br/><span className="font-medium">Safari:</span> First enable Developer Tools (Safari → Settings → Advanced → check "Show features for web developers"), then press <kbd className="bg-amber-100 px-1 rounded">Option</kbd> + <kbd className="bg-amber-100 px-1 rounded">Command</kbd> + <kbd className="bg-amber-100 px-1 rounded">C</kbd> — or use the menu: Develop → Show JavaScript Console
+                                                <br/><span className="font-medium">Chrome:</span> Press <kbd className="bg-amber-100 px-1 rounded">Option</kbd> + <kbd className="bg-amber-100 px-1 rounded">Command</kbd> + <kbd className="bg-amber-100 px-1 rounded">J</kbd>
+                                                <br/><span className="font-medium">Windows (any browser):</span> Press <kbd className="bg-amber-100 px-1 rounded">Ctrl</kbd> + <kbd className="bg-amber-100 px-1 rounded">Shift</kbd> + <kbd className="bg-amber-100 px-1 rounded">J</kbd>
+                                            </li>
+                                            <li>Copy the script below and paste it into the console, then press Enter</li>
+                                            <li>A popup will appear with all your recipe URLs in a text box — click inside the text box, select all (<kbd className="bg-amber-100 px-1 rounded">Command</kbd> + <kbd className="bg-amber-100 px-1 rounded">A</kbd>) and copy (<kbd className="bg-amber-100 px-1 rounded">Command</kbd> + <kbd className="bg-amber-100 px-1 rounded">C</kbd>)</li>
+                                            <li>Come back here, go to the Recipes tab, click "Batch Import", and paste the URLs</li>
+                                        </ol>
+                                    </div>
+                                    <div className="relative">
+                                        <pre className="bg-gray-900 text-green-400 p-4 rounded-lg text-xs overflow-x-auto whitespace-pre-wrap">{`// NYT Cooking Recipe Box Extractor
+var links = Array.from(document.querySelectorAll('a[href*="/recipes/"]'));
+var recipeUrls = [...new Set(links.map(a => a.href).filter(h => h.includes('cooking.nytimes.com/recipes/')))];
+var box = document.createElement('div');
+box.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;';
+box.innerHTML = '<div style="background:white;padding:24px;border-radius:12px;width:600px;max-height:80vh;"><h2 style="margin:0 0 8px;">Found ' + recipeUrls.length + ' recipes</h2><p style="margin:0 0 12px;color:#666;font-size:14px;">Select all (Cmd+A), copy (Cmd+C), then paste into Batch Import</p><textarea style="width:100%;height:300px;font-size:12px;padding:8px;border:1px solid #ccc;border-radius:6px;" onclick="this.select()">' + recipeUrls.join('\\n') + '</textarea><br><button onclick="this.parentElement.parentElement.remove()" style="margin-top:12px;padding:8px 20px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer;">Close</button></div>';
+document.body.appendChild(box);`}</pre>
+                                        <button
+                                            onClick={() => {
+                                                const script = `var links = Array.from(document.querySelectorAll('a[href*="/recipes/"]'));
+var recipeUrls = [...new Set(links.map(a => a.href).filter(h => h.includes('cooking.nytimes.com/recipes/')))];
+var box = document.createElement('div');
+box.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;';
+box.innerHTML = '<div style="background:white;padding:24px;border-radius:12px;width:600px;max-height:80vh;"><h2 style="margin:0 0 8px;">Found ' + recipeUrls.length + ' recipes</h2><p style="margin:0 0 12px;color:#666;font-size:14px;">Select all (Cmd+A), copy (Cmd+C), then paste into Batch Import</p><textarea style="width:100%;height:300px;font-size:12px;padding:8px;border:1px solid #ccc;border-radius:6px;" onclick="this.select()">' + recipeUrls.join('\\n') + '</textarea><br><button onclick="this.parentElement.parentElement.remove()" style="margin-top:12px;padding:8px 20px;background:#333;color:white;border:none;border-radius:6px;cursor:pointer;">Close</button></div>';
+document.body.appendChild(box);`;
+                                                navigator.clipboard.writeText(script).then(() => {
+                                                    alert('Script copied to clipboard!');
+                                                }).catch(() => {
+                                                    alert('Could not copy. Please select and copy the script manually.');
+                                                });
+                                            }}
+                                            className="absolute top-2 right-2 bg-gray-700 text-white px-3 py-1 rounded text-xs hover:bg-gray-600 transition"
+                                        >
+                                            Copy Script
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Refresh Recipe Times */}
+                                <div className="bg-white rounded-lg shadow p-6">
+                                    <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                        ⏱️ Refresh Prep & Cook Times
+                                    </h2>
+                                    <p className="text-sm text-gray-600 mb-4">
+                                        Re-fetch your existing recipes from their source URLs to fill in any missing prep and cook times.
+                                    </p>
+                                    <button
+                                        onClick={handleRefreshTimes}
+                                        disabled={isRefreshing}
+                                        className={`w-full py-3 rounded-lg font-medium transition flex items-center justify-center gap-2 ${isRefreshing ? 'bg-gray-400 text-white cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                                    >
+                                        {isRefreshing ? 'Refreshing...' : 'Refresh All Recipe Times'}
+                                    </button>
+                                    {refreshStatus && (
+                                        <p className={`text-sm mt-3 ${refreshStatus.includes('Done') ? 'text-green-600' : 'text-gray-600'}`}>
+                                            {refreshStatus}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Site Compatibility Info */}
+                                <div className="bg-white rounded-lg shadow p-6">
+                                    <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                        <AlertCircle size={20} className="text-gray-700" />
+                                        Site Compatibility
+                                    </h2>
+                                    <div className="space-y-3 text-sm text-gray-700">
+                                        <div>
+                                            <p className="font-semibold text-gray-800">NYT Cooking</p>
+                                            <p className="text-gray-600">Excellent support. Extracts name, ingredients, instructions, servings, and nutrition data. Use the bulk import script above to bring in all your saved recipes at once.</p>
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-gray-800">AllRecipes</p>
+                                            <p className="text-gray-600">Excellent support. Full recipe data including detailed nutrition information.</p>
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-gray-800">Love and Lemons</p>
+                                            <p className="text-gray-600">Good support using WP Recipe Maker (WPRM) structured data.</p>
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-gray-800">Other Sites</p>
+                                            <p className="text-gray-600">Works with any site that uses standard Recipe JSON-LD structured data. Falls back to basic HTML parsing if needed.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<RecipeMealPlanner />);
+    </script>
+</body>
+</html>
